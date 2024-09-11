@@ -1,0 +1,15 @@
+﻿<Window x:Class="EyeTracking.Desktop.MainWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EyeTracking.Desktop"
+        xmlns:vms="clr-namespace:EyeTracking.Desktop.ViewModels"
+        d:DataContext="{d:DesignInstance vms:EyeTrackViewModel}"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Button Content="选择" Command="{Binding SelectCommand}"/>
+        <Image Source="{Binding}"/>
+    </Grid>
+</Window>
