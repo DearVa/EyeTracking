@@ -1,0 +1,5 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:co="clr-namespace:EyeTracking.Desktop.Converters">
+    <co:NotNull2BoolConverter x:Key="NotNull2BoolConverter"/>
+</ResourceDictionary>

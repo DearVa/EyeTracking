@@ -1,44 +1,41 @@
-﻿using EyeTracking.Extensions;
-using OpenCvSharp;
+﻿using OpenCvSharp;
 
 namespace EyeTracking;
 
 public class EyeTrackContext
 {
-    public Mat?   LastMat  { get; private set; }
+    public Mat?   LastMat    { get; private set; }
     public Point? LeftLight  { get; private set; }
     public Point? RightLight { get; private set; }
 
-    public EyeDetectParameters Parameters { get; set; } = new();
-
+    public EyeDetectParameters Parameters { get; init; } = new();
 
     public void DetectLights(Mat thisMat, out Point? leftLightPos, out Point? rightLightPos)
     {
-        rightLightPos = null;
         leftLightPos  = null;
-        if (LastMat == null)
-        {
-            LastMat = thisMat;
-            return;
-        }
+        rightLightPos = null;
+        DetectLightsInternal(thisMat, ref leftLightPos, ref rightLightPos);
+        LeftLight  = leftLightPos;
+        RightLight = rightLightPos;
+        using var clone = thisMat.Clone();
+        DisplayResult(clone, leftLightPos, rightLightPos);
+        LastMat?.Dispose();
+        LastMat = thisMat;
+    }
+
+    private void DetectLightsInternal(Mat thisMat, ref Point? leftLightPos, ref Point? rightLightPos)
+    {
+        if (LastMat == null) return;
 
         using var subMat = PositiveSubtract(thisMat, LastMat, out _, out var darker);
-        subMat.Show();
         using var binMat = darker.Threshold(Parameters.MinLightThreshold, byte.MaxValue, ThresholdTypes.Tozero);
-        var       clone  = thisMat.Clone();
 
         if (LeftLight  != null) leftLightPos  = CheckLight(thisMat, binMat, LeftLight.Value, false);
         if (RightLight != null) rightLightPos = CheckLight(thisMat, binMat, RightLight.Value, false);
 
-        if (leftLightPos != null && rightLightPos != null)
-        {
-            LeftLight  = leftLightPos;
-            RightLight = rightLightPos;
-            DisplayResult(clone, leftLightPos, rightLightPos);
-            return;
-        }
+        if (leftLightPos != null && rightLightPos != null) return;
 
-        using var tmp = binMat.Clone();
+        using var   tmp        = binMat.Clone();
         List<Point> candidates = [];
         while (true)
         {
@@ -88,18 +85,13 @@ public class EyeTrackContext
                 leftLightPos  ??= candidate;
                 rightLightPos ??= candidate;
             }
-
         }
-
-        DisplayResult(clone, leftLightPos, rightLightPos);
-        LeftLight  = leftLightPos;
-        RightLight = rightLightPos;
-        LastMat  = thisMat;
     }
 
     private Point? CheckLight(Mat origin, Mat binMat, Point lightPos, bool isPointDetected = true)
     {
         var       rect  = Parameters.GetDesiredEyeRect(lightPos, binMat.Size());
+        using var ori   = origin.SubMat(rect);
         using var sub   = binMat.SubMat(rect);
         var       x     = sub.Width;
         var       last  = 0d;
@@ -128,14 +120,15 @@ public class EyeTrackContext
             {
                 if (isPointDetected) return lightPos;
                 using var t = origin.SubMat(rect);
-                t.MinMaxLoc(out _, out Point max);
-                return max.Add(rect.TopLeft);
+                t.MinMaxLoc(out _, out Point max);        
+                var ret = max.Add(rect.TopLeft);
+                OnDebug?.Invoke("候选", ori, true, ret);
+                return ret;
             }
             last  = value;
 
         }
-        using var failed = binMat.SubMat(rect);
-        failed.Resize(new Size(400,400)).Show();
+        OnDebug?.Invoke("候选", ori, false, lightPos);
         return null;
     }
 
@@ -143,8 +136,8 @@ public class EyeTrackContext
         one.Sum().Val0 > another.Sum().Val0
             ? (brighter = one)     - (darker = another)
             : (brighter = another) - (darker = one);
-
-
+    
+    #if DEBUG
     private void DisplayResult(Mat mat, Point? left, Point? right)
     {
         if (left != null)
@@ -160,6 +153,11 @@ public class EyeTrackContext
             mat.Circle(right.Value,Parameters.DesiredEyeRadius, Scalar.Black, 3);
             mat.Circle(right.Value, 2, Scalar.Black, 4);
         }
-        mat.Show();
+
+        OnDebug?.Invoke("输出", mat);
     }
+    
+    public event DebugHandler? OnDebug;
+    public delegate void       DebugHandler(string title, Mat mat, params object[]? additional);
+#endif
 }

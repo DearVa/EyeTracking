@@ -1,6 +1,7 @@
 ﻿using OpenCvSharp;
 using Sdcb.FFmpeg.Codecs;
 using Sdcb.FFmpeg.Formats;
+using Sdcb.FFmpeg.Raw;
 using Sdcb.FFmpeg.Utils;
 
 namespace EyeTracking;
@@ -39,7 +40,8 @@ public class VideoDecoder : IDisposable
                     break;
             }
 
-            context.SendPacket(packet);
+
+            SendPacket(packet);
 
             while (true)
             {
@@ -58,18 +60,28 @@ public class VideoDecoder : IDisposable
                     }
                 }
 
-                outer:
-                continue;
+
             }
+
+            outer:
+            continue;
         }
 
         final:
         yield break;
     }
-    
+
     public void Dispose()
     {
         format.Dispose();
         context.Dispose();
+    }
+
+    private void SendPacket(Packet packet)
+    {
+        unsafe
+        {
+            ffmpeg.avcodec_send_packet(context, packet);
+        }
     }
 }

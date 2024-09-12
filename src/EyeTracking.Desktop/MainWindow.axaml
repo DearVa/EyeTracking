@@ -9,7 +9,32 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button Content="选择" Command="{Binding SelectCommand}"/>
-        <Image Source="{Binding}"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="选择" Command="{Binding SelectCommand}" />
+            <Button Content="下一张" Command="{Binding NextCommand}"
+                    IsEnabled="{Binding Tracker, 
+                Converter={StaticResource NotNull2BoolConverter}}" />
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Image Source="{Binding Detected}" />
+            <ListBox Grid.Column="1" ItemsSource="{Binding Debugs}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Background="{Binding Brush}">
+                            <Image Source="{Binding  Bitmap}"/>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Point}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
     </Grid>
 </Window>
