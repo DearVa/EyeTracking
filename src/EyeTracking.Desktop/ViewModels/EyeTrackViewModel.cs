@@ -34,19 +34,13 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
 
     private string? filePath;
 
-    [ObservableProperty] private EyeTrackContext? tracker;
-
+    [ObservableProperty] private EyeTrackContext?    tracker;
     [ObservableProperty] private EyeDetectParameters parameters = new();
-
-    [ObservableProperty] private VideoDecoder? decoder;
-
-    [ObservableProperty] private IEnumerator<Mat>? enumerator;
-
-    [ObservableProperty] private Mat? source;
-
-    [ObservableProperty] private WriteableBitmap? bitmap;
-
-    [ObservableProperty] private WriteableBitmap? detected;
+    [ObservableProperty] private VideoDecoder?       decoder;
+    [ObservableProperty] private IEnumerator<Mat>?   enumerator;
+    [ObservableProperty] private Mat?                source;
+    [ObservableProperty] private WriteableBitmap?    bitmap;
+    [ObservableProperty] private WriteableBitmap?    detected;
 
     public ObservableCollection<TrackDebugViewModel> Debugs { get; }= [];
 

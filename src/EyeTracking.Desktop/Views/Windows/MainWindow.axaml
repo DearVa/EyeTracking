@@ -7,7 +7,7 @@
         xmlns:vms="clr-namespace:EyeTracking.Desktop.ViewModels"
         d:DataContext="{d:DesignInstance vms:EyeTrackViewModel}"
         mc:Ignorable="d"
-        Title="EyeTrack" Height="900" Width="1600">
+        Title="EyeTrack" Height="600" Width="1200">
     <Grid RowDefinitions="Auto,*">
         <StackPanel Orientation="Horizontal">
             <Button Content="选择" Command="{Binding SelectCommand}" />
