@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using EyeTracking.Desktop.ViewModels;
 
-namespace EyeTracking.Desktop;
+namespace EyeTracking.Desktop.Views.Windows;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml

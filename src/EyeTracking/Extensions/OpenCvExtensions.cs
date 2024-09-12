@@ -2,7 +2,7 @@
 
 namespace EyeTracking.Extensions;
 
-public static class OpenCvExtension
+public static class OpenCvExtensions
 {
     public static void Show(this Mat mat, string winName = nameof(OpenCvSharp))
     {

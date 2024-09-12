@@ -158,6 +158,6 @@ public class EyeTrackContext
     }
     
     public event DebugHandler? OnDebug;
-    public delegate void       DebugHandler(string title, Mat mat, params object[]? additional);
+    public delegate void       DebugHandler(params object[] args);
 #endif
 }

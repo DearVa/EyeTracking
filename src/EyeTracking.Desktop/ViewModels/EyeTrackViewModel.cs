@@ -1,14 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Web;
-using Avalonia;
-using Avalonia.Controls.Chrome;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EyeTracking.Desktop.Extensions;
+using EyeTracking.Extensions;
 using OpenCvSharp;
 using Point = OpenCvSharp.Point;
 using Window = Avalonia.Controls.Window;
@@ -17,7 +16,7 @@ namespace EyeTracking.Desktop.ViewModels;
 
 public partial class EyeTrackViewModel(Window window) : ObservableObject
 {
-    public string? FilePath
+    private string? FilePath
     {
         get => filePath;
         set
@@ -29,31 +28,7 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
                 Decoder?.Dispose();
                 Decoder = null;
             }
-            else
-            {
-                Tracker = new EyeTrackContext
-                {
-                    Parameters = Parameters
-                };
-                Tracker.OnDebug += (title, mat, additional) =>
-                {
-                    switch (title)
-                    {
-                        case "输出":
-                            Detected?.Dispose();
-                            Detected = mat.ToWriteableBitmap();
-                            return;
-                        case "候选" :
-                            Dispatcher.UIThread.Invoke(() =>
-                            {
-                                Debugs.Add(new(mat.ToWriteableBitmap(),(Point)additional![1], additional[0] is true ? Brushes.Cyan : Brushes.Red));
-                            });
-                            return;
-                    }
-                };
-                Decoder         =  new VideoDecoder(value);
-                Enumerator      =  Decoder.Decode().GetEnumerator();
-            }
+            else Initialize(value);
         }
     }
 
@@ -73,10 +48,38 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
 
     [ObservableProperty] private WriteableBitmap? detected;
 
-    public ObservableCollection<DebugPack> Debugs { get; }= [];
+    public ObservableCollection<TrackDebugViewModel> Debugs { get; }= [];
 
-    public record DebugPack(WriteableBitmap Bitmap, Point Point, IImmutableSolidColorBrush Brush);
-    
+    private void Initialize(string file)
+    {
+        Tracker = new EyeTrackContext
+        {
+            Parameters = Parameters
+        };
+        Tracker.OnDebug += args =>
+        {
+            switch (args[0])
+            {
+                case "输出":
+                    Detected?.Dispose();
+                    Detected = args[1].AsNotNull<Mat>().ToWriteableBitmap();
+                    return;
+                case "候选" :
+                    Dispatcher.UIThread.Invoke(() =>
+                    {
+                        Debugs.Add(new(
+                            args[1].AsNotNull<Mat>().Clone(),
+                            $"X:{args[3].AsNotNull<Point>().X}, Y:{args[3].AsNotNull<Point>().Y}",
+                            args[2] is true ? Brushes.CornflowerBlue : Brushes.Red,
+                            Tracker.Parameters));
+                    });
+                    return;
+            }
+        };
+        Decoder    = new VideoDecoder(file);
+        Enumerator = Decoder.Decode().GetEnumerator();
+    }
+
     [RelayCommand]
     private async Task Select()
     {
@@ -103,20 +106,9 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
             return;
         }
         var mat = Source = Enumerator.Current;
-        foreach (var debug in Debugs) debug.Bitmap.Dispose();
+        foreach (var debug in Debugs) debug.Dispose();
         Debugs.Clear();
         Tracker?.DetectLights(mat, out _, out _);
-        Bitmap = mat.ToWriteableBitmap();
     }
     
-}
-
-file static class BitmapExtension
-{
-    public static WriteableBitmap ToWriteableBitmap(this Mat mat)
-    {
-        using var tmp = mat.CvtColor(ColorConversionCodes.GRAY2RGBA);
-        return new WriteableBitmap(PixelFormat.Rgb32, AlphaFormat.Opaque, tmp.DataStart,
-            new PixelSize(mat.Width, mat.Height), new Vector(96, 96), mat.Width * 4);
-    }
 }
