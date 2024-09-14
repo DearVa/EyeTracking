@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Web;
+using Antelcat.AutoGen.ComponentModel;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -14,6 +15,7 @@ using Window = Avalonia.Controls.Window;
 
 namespace EyeTracking.Desktop.ViewModels;
 
+[AutoKeyAccessor]
 public partial class EyeTrackViewModel(Window window) : ObservableObject
 {
     private string? FilePath
@@ -35,37 +37,50 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     private string? filePath;
 
     [ObservableProperty] private EyeTrackContext?    tracker;
-    [ObservableProperty] private EyeDetectParameters parameters = new();
+    [ObservableProperty] private EyeDetectParameters parameters = new()
+    {
+    };
     [ObservableProperty] private VideoDecoder?       decoder;
     [ObservableProperty] private IEnumerator<Mat>?   enumerator;
     [ObservableProperty] private Mat?                source;
     [ObservableProperty] private WriteableBitmap?    bitmap;
-    [ObservableProperty] private WriteableBitmap?    detected;
+    [ObservableProperty] private WriteableBitmap?    output;
+    [ObservableProperty] private WriteableBitmap?    subtraction;
+    [ObservableProperty] private WriteableBitmap?    binSubtraction;
 
     public ObservableCollection<TrackDebugViewModel> Debugs { get; }= [];
 
     private void Initialize(string file)
     {
-        Tracker = new EyeTrackContext
+        Tracker = new OldEyeTrackContext
         {
             Parameters = Parameters
         };
-        Tracker.OnDebug += args =>
+        Tracker.OnDebug += (hint,args) =>
         {
-            switch (args[0])
+            var mat = args[0].AsNotNull<Mat>();
+            switch (hint)
             {
-                case "输出":
-                    Detected?.Dispose();
-                    Detected = args[1].AsNotNull<Mat>().ToWriteableBitmap();
+                case EyeTrackContext.DebugHint.Bin_Subtraction:
+                    BinSubtraction?.Dispose();
+                    BinSubtraction = mat.ToWriteableBitmap();
                     return;
-                case "候选" :
+                case EyeTrackContext.DebugHint.Subtraction:
+                    Subtraction?.Dispose();
+                    Subtraction = mat.ToWriteableBitmap();
+                    return;
+                case EyeTrackContext.DebugHint.Output:
+                    Output?.Dispose();
+                    Output = mat.ToWriteableBitmap();
+                    return;
+                case EyeTrackContext.DebugHint.Candidate :
                     Dispatcher.UIThread.Invoke(() =>
                     {
                         Debugs.Add(new(
-                            args[1].AsNotNull<Mat>().Clone(),
-                            $"X:{args[3].AsNotNull<Point>().X}, Y:{args[3].AsNotNull<Point>().Y}",
-                            args[2] is true ? Brushes.CornflowerBlue : Brushes.Red,
-                            Tracker.Parameters));
+                            mat.Clone(),
+                            $"X:{args[2].AsNotNull<Point>().X}, Y:{args[2].AsNotNull<Point>().Y}",
+                            args[1] is true ? Brushes.CornflowerBlue : Brushes.Red,
+                            Tracker.Parameters with { }));
                     });
                     return;
             }
@@ -77,7 +92,6 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     [RelayCommand]
     private async Task Select()
     {
-        
         var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(FilePath ?? @"F:\Shared\Files\视线追踪项目材料\明暗瞳视线追踪技术材料\开发板资料\视频1"),
@@ -104,5 +118,4 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
         Debugs.Clear();
         Tracker?.DetectLights(mat, out _, out _);
     }
-    
 }

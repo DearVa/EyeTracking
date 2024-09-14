@@ -24,4 +24,6 @@ public record EyeDetectParameters
         var height = size.Height - top;
         return new Rect(left, top, Math.Min(2 * radius, width), Math.Min(2 * radius, height));
     }
+
+    public Mat Threshold(Mat gray) => gray.Threshold(MinLightThreshold, byte.MaxValue, ThresholdTypes.Tozero);
 }

@@ -7,5 +7,20 @@
         x:Class="EyeTracking.Desktop.Views.Windows.DebugWindow"
         d:DataContext="{d:DesignInstance vms:TrackDebugViewModel}"
         Title="EyeTrackDebug">
-        
+    <Grid ColumnDefinitions="Auto,Auto,Auto">
+        <Image Source="{Binding Origin}"/>
+        <Grid Grid.Column="1" Margin="12"
+              RowDefinitions="Auto"
+              ColumnDefinitions="Auto,*">
+            <Grid.Styles>
+                <Style Selector="TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="Margin" Value="0,0,8,0"/>
+                </Style>
+            </Grid.Styles>
+            <TextBlock Text="亮度阈值:"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding MinLightThreshold}"/>
+        </Grid>
+        <Image Grid.Column="2" Source="{Binding Output}"/>
+    </Grid>
 </Window>

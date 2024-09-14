@@ -33,7 +33,7 @@ public class Tests
         Mat?   last     = null;
         Point? leftEye  = null;
         Point? rightEye = null;
-        var    context  = new EyeTrackContext();
+        var    context  = new OldEyeTrackContext();
         Loop(mat =>
         {
             context.DetectLights(mat, out _, out _);
