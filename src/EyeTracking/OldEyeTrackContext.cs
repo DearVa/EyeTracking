@@ -5,7 +5,6 @@ namespace EyeTracking;
 
 public class OldEyeTrackContext : EyeTrackContext
 {
-    private Mat? background;
 
     public override void DetectLights(Mat thisMat, out Point? leftLightPos, out Point? rightLightPos)
     {
@@ -14,14 +13,14 @@ public class OldEyeTrackContext : EyeTrackContext
 
         //-----------------------------------------------------------------------------------
         //选择前一帧作为背景（读入第一帧时，第一帧作为背景）
-        if (background == null)
+        if (LastMat == null)
         {
-            background = thisMat;
+            LastMat = thisMat;
             return;
         }
 
-        using var foreground = FrameSubtraction(thisMat, background);
-
+        using var foreground = FrameSubtraction(thisMat, LastMat);
+        Debug(DebugHint.Bin_Subtraction, foreground);
 
         //imshow("foreground_BW", foreground_BW);
         //threshold(foreground, foreground_BW, 30, 255, 0);//二值化通常设置为50  255
@@ -43,18 +42,20 @@ public class OldEyeTrackContext : EyeTrackContext
 
         /*Open(foreground_BW, dstImage);
         imshow("dstImage", dstImage);*/
+        dstImage.Show();
         var area = GetArea(dstImage);
 
         //找到瞳孔的最小外切圆
         GetMyMinEnclosingCircle(area);
         //imshow("frame_0", frame_0);
-        background = thisMat;
+        LastMat = thisMat;
     }
 
-    private static Mat FrameSubtraction(Mat gray, Mat background)
+    private Mat FrameSubtraction(Mat gray, Mat background)
     {
         using var tmp = new Mat();
         Cv2.Absdiff(gray, background, tmp);
+        Debug(DebugHint.Subtraction, tmp);
         //var element = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(5, 5));
         //使用局部自适应阈值分割
         //  *参数说明
@@ -65,7 +66,7 @@ public class OldEyeTrackContext : EyeTrackContext
         //	参数5：指定阈值类型。可选择THRESH_BINARY或者THRESH_BINARY_INV两种。（即二进制阈值或反二进制阈值）。
         //	参数6：表示邻域块大小，用来计算区域阈值，一般选择为3、5、7......等。
         //	参数7：参数C表示与算法有关的参数，它是一个从均值或加权均值提取的常数，可以是负数。（具体见下面的解释）。*/
-        return tmp.AdaptiveThreshold(255, AdaptiveThresholdTypes.MeanC,
+        return tmp.AdaptiveThreshold(byte.MaxValue, AdaptiveThresholdTypes.MeanC,
             ThresholdTypes.BinaryInv, 5, 10);
         //大津方法
         //threshold(foreground, foreground_BW, 0, 255, CV_THRESH_OTSU);
@@ -120,7 +121,7 @@ public class OldEyeTrackContext : EyeTrackContext
                 imgContours.At<byte>(point.X, point.Y) = 255;
             }
 
-            Cv2.DrawContours(imageContours, contours, index, Scalar.White, -1);
+            imageContours.DrawContours(contours, index, Scalar.White, -1);
         }
         
 

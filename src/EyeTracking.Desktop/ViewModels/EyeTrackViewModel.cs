@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EyeTracking.Desktop.Extensions;
 using EyeTracking.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using Point = OpenCvSharp.Point;
 using Window = Avalonia.Controls.Window;
@@ -36,56 +37,85 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
 
     private string? filePath;
 
-    [ObservableProperty] private EyeTrackContext?    tracker;
+    [ObservableProperty] 
+  
+    private EyeTrackContext? tracker;
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanNext))]
+    [NotifyPropertyChangedFor(nameof(CanPlay))]
+    [NotifyPropertyChangedFor(nameof(CanPlay))]
+    [NotifyPropertyChangedFor(nameof(PlayVisible))]
+    [NotifyPropertyChangedFor(nameof(StopVisible))]
+    private IEnumerator<Mat>?   enumerator;
+    
     [ObservableProperty] private EyeDetectParameters parameters = new()
     {
     };
     [ObservableProperty] private VideoDecoder?       decoder;
-    [ObservableProperty] private IEnumerator<Mat>?   enumerator;
     [ObservableProperty] private Mat?                source;
     [ObservableProperty] private WriteableBitmap?    bitmap;
     [ObservableProperty] private WriteableBitmap?    output;
     [ObservableProperty] private WriteableBitmap?    subtraction;
     [ObservableProperty] private WriteableBitmap?    binSubtraction;
+    [ObservableProperty] private WriteableBitmap?    origin;
 
-    public ObservableCollection<TrackDebugViewModel> Debugs { get; }= [];
+    [NotifyPropertyChangedFor(nameof(CanNext))]
+    [NotifyPropertyChangedFor(nameof(PlayVisible))]
+    [NotifyPropertyChangedFor(nameof(StopVisible))]
+    [ObservableProperty] private bool autoPlay;
+    
+    public bool CanNext => CanPlay && !AutoPlay;
+    public bool CanPlay => Enumerator is not null;
+
+    public bool PlayVisible => CanPlay && !AutoPlay;
+    public bool StopVisible => CanPlay && AutoPlay;
+    
+    public ObservableCollection<TrackDebugViewModel> Debugs  { get; }= [];
 
     private void Initialize(string file)
     {
-        Tracker = new OldEyeTrackContext
+        if (Tracker == null)
         {
-            Parameters = Parameters
-        };
-        Tracker.OnDebug += (hint,args) =>
-        {
-            var mat = args[0].AsNotNull<Mat>();
-            switch (hint)
+            Tracker            = this.ServiceProvider().GetRequiredService<EyeTrackContext>();
+            Tracker.Parameters = Parameters;
+            Tracker.OnDebug += (hint, args) =>
             {
-                case EyeTrackContext.DebugHint.Bin_Subtraction:
-                    BinSubtraction?.Dispose();
-                    BinSubtraction = mat.ToWriteableBitmap();
-                    return;
-                case EyeTrackContext.DebugHint.Subtraction:
-                    Subtraction?.Dispose();
-                    Subtraction = mat.ToWriteableBitmap();
-                    return;
-                case EyeTrackContext.DebugHint.Output:
-                    Output?.Dispose();
-                    Output = mat.ToWriteableBitmap();
-                    return;
-                case EyeTrackContext.DebugHint.Candidate :
-                    Dispatcher.UIThread.Invoke(() =>
-                    {
-                        Debugs.Add(new(
-                            mat.Clone(),
-                            $"X:{args[2].AsNotNull<Point>().X}, Y:{args[2].AsNotNull<Point>().Y}",
-                            args[1] is true ? Brushes.CornflowerBlue : Brushes.Red,
-                            Tracker.Parameters with { }));
-                    });
-                    return;
-            }
-        };
+                var mat = args[0].AsNotNull<Mat>();
+                switch (hint)
+                {
+                    case EyeTrackContext.DebugHint.Origin:
+                        Origin?.Dispose();
+                        Origin = mat.ToWriteableBitmap();
+                        return;
+                    case EyeTrackContext.DebugHint.Bin_Subtraction:
+                        BinSubtraction?.Dispose();
+                        BinSubtraction = mat.ToWriteableBitmap();
+                        return;
+                    case EyeTrackContext.DebugHint.Subtraction:
+                        Subtraction?.Dispose();
+                        Subtraction = mat.ToWriteableBitmap();
+                        return;
+                    case EyeTrackContext.DebugHint.Output:
+                        Output?.Dispose();
+                        Output = mat.ToWriteableBitmap();
+                        return;
+                    case EyeTrackContext.DebugHint.Candidate:
+                        Dispatcher.UIThread.Invoke(() =>
+                        {
+                            Debugs.Add(new(
+                                mat,
+                                $"X:{args[2].AsNotNull<Point>().X}, Y:{args[2].AsNotNull<Point>().Y}",
+                                args[1] is true ? Brushes.CornflowerBlue : Brushes.Red,
+                                Tracker.Parameters with { }));
+                        });
+                        return;
+                }
+            };
+        }
+        Decoder?.Dispose();
         Decoder    = new VideoDecoder(file);
+        Enumerator?.Dispose();
         Enumerator = Decoder.Decode().GetEnumerator();
     }
 
@@ -94,7 +124,8 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     {
         var result = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(FilePath ?? @"F:\Shared\Files\视线追踪项目材料\明暗瞳视线追踪技术材料\开发板资料\视频1"),
+            SuggestedStartLocation = await window.StorageProvider.TryGetFolderFromPathAsync(
+                FilePath is null ? @"F:\Shared\Files\视线追踪项目材料\明暗瞳视线追踪技术材料\开发板资料\视频1" : ((FilePath)FilePath).DirectoryName!),
             AllowMultiple     = false
         });
         foreach (var file in result)
@@ -105,12 +136,31 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     }
 
     [RelayCommand]
+    private async Task Start()
+    {
+        if (AutoPlay) return;
+        AutoPlay = true;
+        while (Enumerator is not null && AutoPlay)
+        {
+            Next();
+            await Task.Delay(20);
+        }
+    }
+
+    [RelayCommand]
+    private void Stop() => AutoPlay = false;
+    
+    [RelayCommand]
     private void Next()
     {
         if (Enumerator is null) return;
         if (!Enumerator.MoveNext())
         {
+            Enumerator.Dispose();
             Enumerator = null;
+            Decoder?.Dispose();
+            Decoder  = null;
+            AutoPlay = false;
             return;
         }
         var mat = Source = Enumerator.Current;

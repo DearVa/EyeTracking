@@ -22,77 +22,94 @@ public class NewEyeTrackContext : EyeTrackContext
     {
         if (LastMat == null) return;
 
-        using var subMat = PositiveSubtract(thisMat, LastMat, out _, out var darker);
+        using var subMat = Subtract(thisMat, LastMat, out _, out var darker);
         Debug(DebugHint.Subtraction, subMat);
         using var binMat = Parameters.Threshold(darker);
         Debug(DebugHint.Bin_Subtraction, binMat);
 
-        if (LeftLight  != null) leftLightPos  = CheckLight(thisMat, binMat, LeftLight.Value, false);
-        if (RightLight != null) rightLightPos = CheckLight(thisMat, binMat, RightLight.Value, false);
+        if (LeftLight != null && CheckLight(thisMat, binMat, LeftLight.Value, false) is
+            {
+                Certain: true,
+                Point  : var left
+            })
+            leftLightPos = left;
+        if (RightLight != null && CheckLight(thisMat, binMat, RightLight.Value, false) is
+            {
+                Certain: true,
+                Point  : var right
+            })
+            rightLightPos = right;
 
         if (leftLightPos != null && rightLightPos != null) return;
 
-        using var   tmp        = binMat.Clone();
-        List<Point> candidates = [];
+        using var       tmp        = binMat.Clone();
+        List<Candidate> candidates = [];
         while (true)
         {
             tmp.MinMaxLoc(out _, out var maxVal, out _, out var maxPoint);
             if (maxVal <= 0) break;
             tmp.Circle(maxPoint, Parameters.DesiredEyeRadius, Scalar.Black, 2 * Parameters.DesiredEyeRadius);
-            var result = CheckLight(thisMat, binMat, maxPoint);
-            if (result != null) candidates.Add(maxPoint);
+            candidates.Add(CheckLight(thisMat, binMat, maxPoint));
         }
 
         var motionRadius = Parameters.MotionRadius;
-        foreach (var candidate in candidates)
+        foreach (var candidate in candidates.OrderByDescending(x => x.Sum))
         {
+            var (_, point, _, _, _) = candidate;
             if (leftLightPos != null && rightLightPos != null) break;
             if (leftLightPos != null)
             {
-                if (leftLightPos.Value.DistanceTo(candidate) < motionRadius) continue; //符合左侧
+                if (leftLightPos.Value.DistanceTo(point) < motionRadius) continue; //符合左侧
             }
-            else if (LeftLight != null && LeftLight.Value.DistanceTo(candidate) < motionRadius) //有上一个参考
+            else if (LeftLight != null && LeftLight.Value.DistanceTo(point) < motionRadius) //有上一个参考
             {
-                leftLightPos = candidate;
+                leftLightPos = point;
+                candidate.Debug(true);
                 continue;
             }
 
             if (rightLightPos != null)
             {
-                if (rightLightPos.Value.DistanceTo(candidate) < motionRadius) continue; //符合右侧
+                if (rightLightPos.Value.DistanceTo(point) < motionRadius) continue; //符合右侧
             }
-            else if (RightLight != null && RightLight.Value.DistanceTo(candidate) < motionRadius) //有上一个参考
+            else if (RightLight != null && RightLight.Value.DistanceTo(point) < motionRadius) //有上一个参考
             {
-                rightLightPos = candidate;
+                rightLightPos = point;
+                candidate.Debug(true);
                 continue;
             }
 
             if (leftLightPos == null && rightLightPos == null)
             {
-                if (candidate.X <= thisMat.Width / 2)
-                    leftLightPos = candidate;
+                if (point.X <= thisMat.Width / 2)
+                    leftLightPos = point;
                 else
-                    rightLightPos = candidate;
+                    rightLightPos = point;
+                candidate.Debug(true);
                 continue;
             }
 
             var horizon = (leftLightPos ?? rightLightPos)!.Value.Y;
-            if (Math.Abs(horizon - candidate.Y) < Parameters.MaxVerticalDistance)
+            if (Math.Abs(horizon - point.Y) < Parameters.MaxVerticalDistance)
             {
-                leftLightPos  ??= candidate;
-                rightLightPos ??= candidate;
+                leftLightPos  ??= point;
+                rightLightPos ??= point;
             }
+            
+            candidate.Debug(false);
+            candidate.Dispose();
         }
     }
 
-    private Point? CheckLight(Mat origin, Mat binMat, Point lightPos, bool isPointDetected = true)
+    private Candidate CheckLight(Mat origin, Mat binMat, Point lightPos, bool isPointDetected = true)
     {
-        var       rect  = Parameters.GetDesiredEyeRect(lightPos, binMat.Size());
-        using var ori   = origin.SubMat(rect);
-        using var sub   = binMat.SubMat(rect);
-        var       x     = sub.Width;
-        var       last  = 0d;
-        var       state = 0;
+        var       rect   = Parameters.GetDesiredEyeRect(lightPos, binMat.Size());
+        var ori    = origin.SubMat(rect);
+        using var sub    = binMat.SubMat(rect);
+        var       weight = Parameters.Weighted(binMat);
+        var       x      = sub.Width;
+        var       last   = 0d;
+        var       state  = 0;
         while (x-- > 0)
         {
             using var tmp   = sub.Col(x);
@@ -105,7 +122,7 @@ public class NewEyeTrackContext : EyeTrackContext
                 case 1: //decreasing
                     if (value < last) state = 2;
                     break;
-                case 2 : //increasing
+                case 2: //increasing
                     if (value > last) state = 3;
                     break;
                 case 3: // to zero
@@ -115,26 +132,58 @@ public class NewEyeTrackContext : EyeTrackContext
 
             if (state == 4)
             {
-                if (isPointDetected) return lightPos;
+                if (isPointDetected)
+                {
+                    return new(ori, lightPos, true, weight, Debug);
+                }
+
                 using var t = origin.SubMat(rect);
-                t.MinMaxLoc(out _, out Point max);        
-                var ret = max.Add(rect.TopLeft);
-                Debug(DebugHint.Candidate, ori, true, ret);
+                t.MinMaxLoc(out _, out Point max);
+                var ret = new Candidate(ori, max.Add(rect.TopLeft), true, weight, Debug);
+                ret.Debug(true);
                 return ret;
             }
-            last  = value;
+
+            last = value;
 
         }
-        Debug(DebugHint.Candidate, ori, false, lightPos);
-        return null;
+
+        return new(ori, lightPos, false, weight, Debug);
     }
 
-    private static Mat PositiveSubtract(Mat one, Mat another, out Mat brighter, out Mat darker) =>
-        one.Sum().Val0 > another.Sum().Val0
-            ? (brighter = one)     - (darker = another)
-            : (brighter = another) - (darker = one);
-    
-    #if DEBUG
+    private static Mat Subtract(Mat one, Mat another, out Mat brighter, out Mat darker)
+    {
+        var ret = new Mat();
+        Cv2.Absdiff(one, another, ret);
+        if (one.Sum().Val0 > another.Sum().Val0)
+        {
+            brighter = one;
+            darker   = another;
+        }
+        else
+        {
+            brighter = another;
+            darker   = one;
+        }
 
-#endif
+        return ret;
+    }
+
+    private record Candidate(Mat Gray, Point Point, bool Certain, double Sum, DebugHandler Handler) : IDisposable
+    {
+        private bool debugged;
+        public void Debug(bool result)
+        {
+            if (debugged) return;
+            Gray.ThrowIfDisposed();
+            debugged = true;
+            Handler.Invoke(DebugHint.Candidate, Gray, result, Point);
+        }
+
+        public void Dispose()
+        {
+            if (!Gray.IsDisposed) Gray.Dispose();
+        }
+    }
+
 }

@@ -10,7 +10,7 @@
     <Grid ColumnDefinitions="Auto,Auto,Auto">
         <Image Source="{Binding Origin}"/>
         <Grid Grid.Column="1" Margin="12"
-              RowDefinitions="Auto"
+              RowDefinitions="Auto,Auto"
               ColumnDefinitions="Auto,*">
             <Grid.Styles>
                 <Style Selector="TextBlock">
@@ -19,7 +19,9 @@
                 </Style>
             </Grid.Styles>
             <TextBlock Text="亮度阈值:"/>
-            <NumericUpDown Grid.Column="1" Value="{Binding MinLightThreshold}"/>
+            <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding MinLightThreshold}"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="亮度阈值:"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Sum}"/>
         </Grid>
         <Image Grid.Column="2" Source="{Binding Output}"/>
     </Grid>

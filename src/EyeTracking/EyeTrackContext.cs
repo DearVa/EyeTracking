@@ -4,10 +4,10 @@ namespace EyeTracking;
 
 public abstract class EyeTrackContext
 {
-    public Mat?                LastMat    { get; protected set; }
-    public Point?              LeftLight  { get; protected set; }
-    public Point?              RightLight { get; protected set; }
-    public EyeDetectParameters Parameters { get; init; } = new();
+    protected Mat?                LastMat    { get; set; }
+    protected Point?              LeftLight  { get; set; }
+    protected Point?              RightLight { get; set; }
+    public    EyeDetectParameters Parameters { get; set; } = new();
 
     public abstract void DetectLights(Mat thisMat, out Point? leftLightPos, out Point? rightLightPos);
 
@@ -35,7 +35,12 @@ public abstract class EyeTrackContext
 
     public delegate void DebugHandler(DebugHint hint, params object[] args);
 
-    protected void Debug(DebugHint hint, params object[] args) => OnDebug?.Invoke(hint, args);
+    protected void Debug(DebugHint hint, params object[] args)
+    {
+#if DEBUG
+        OnDebug?.Invoke(hint, args);
+#endif
+    }
 
     public enum DebugHint
     {

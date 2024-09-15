@@ -11,12 +11,19 @@
     <Grid RowDefinitions="Auto,*">
         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
             <Button Content="选择" Command="{Binding SelectCommand}" />
+            <Button Content="播放" Command="{Binding StartCommand}"
+                    IsVisible="{Binding PlayVisible}"/>
+            <Button Content="暂停" Command="{Binding StopCommand}"
+                    IsVisible="{Binding StopVisible}"/>
             <Button Content="下一张" Command="{Binding NextCommand}"
-                    IsEnabled="{Binding Tracker, 
-                Converter={StaticResource NotNull2BoolConverter}}" />
+                    IsVisible="{Binding  CanNext}" />
         </StackPanel>
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
             <Grid RowDefinitions="2*,2*" ColumnDefinitions="2*,2*">
+                <Grid >
+                    <Image Source="{Binding Origin}" />
+                    <TextBlock>原图</TextBlock>
+                </Grid>
                 <Grid Grid.Row="0" Grid.Column="1">
                     <Image Source="{Binding Subtraction}" />
                     <TextBlock>差值</TextBlock>

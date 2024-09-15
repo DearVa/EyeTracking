@@ -26,4 +26,8 @@ public record EyeDetectParameters
     }
 
     public Mat Threshold(Mat gray) => gray.Threshold(MinLightThreshold, byte.MaxValue, ThresholdTypes.Tozero);
+
+    public double Weighted(double value) => Math.Max(value - MinLightThreshold, 0) * value;
+    
+    public double Weighted(Mat mat) => !mat.GetArray(out byte[] array) ? 0 : array.Sum(value => Weighted(value));
 }

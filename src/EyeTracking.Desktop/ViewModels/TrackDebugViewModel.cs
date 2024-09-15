@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using Antelcat.AutoGen.ComponentModel.Diagnostic;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -20,42 +19,47 @@ namespace EyeTracking.Desktop.ViewModels;
             set {
                 parameters.{Name} = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Output));
+                OnPropertyChanged(nameof(Sum));
             }
         #endif
         }
         #endif
 
         """)]
-public partial class TrackDebugViewModel : ObservableObject, IDisposable
+public partial class TrackDebugViewModel(
+    Mat mat,
+    string point,
+    IImmutableSolidColorBrush brush,
+    EyeDetectParameters parameters) : ObservableObject, IDisposable
 {
-    public TrackDebugViewModel(
-        Mat mat,
-        string point,
-        IImmutableSolidColorBrush brush,
-        EyeDetectParameters parameters)
+    public IImmutableSolidColorBrush Brush  { get; } = brush;
+    public string                    Point  { get; } = point;
+    public WriteableBitmap           Origin { get; } = mat.ToWriteableBitmap();
+
+    private readonly Mat mat = mat.Clone();
+
+    public double Sum
     {
-        Brush           = brush;
-        Point           = point;
-        Origin          = mat.ToWriteableBitmap();
-        this.parameters = parameters;
-        this.mat        = mat.Clone();
-        PropertyChanged += (o, e) =>
+        get
         {
-            if(e.PropertyName == nameof(Output)) return;
-            Output?.Dispose();
-            using var tmp = this.parameters.Threshold(this.mat);
-            Output = tmp.ToWriteableBitmap();
-        };
+            using var tmp = parameters.Threshold(mat);
+            return parameters.Weighted(tmp);
+        }
     }
 
-    public IImmutableSolidColorBrush Brush  { get; }
-    public string                    Point  { get; }
-    public WriteableBitmap           Origin { get; }
+    public WriteableBitmap? Output
+    {
+        get
+        {
+            output?.Dispose();
+            using var tmp = parameters.Threshold(mat);
+            output = tmp.ToWriteableBitmap();
+            return output;
+        }
+    }
 
-    private readonly EyeDetectParameters parameters;
-    private readonly Mat                 mat;
-
-    [ObservableProperty] private WriteableBitmap? output;
+    private WriteableBitmap? output;
 
     [RelayCommand]
     private void Detail() => new DebugWindow(this).Show();
