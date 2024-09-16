@@ -2,12 +2,12 @@
 
 namespace EyeTracking;
 
-public abstract class EyeTrackContext
+public abstract class EyeTrackContext : IDisposable
 {
-    protected Mat?                LastMat    { get; set; }
-    protected Point?              LeftLight  { get; set; }
-    protected Point?              RightLight { get; set; }
-    public    EyeDetectParameters Parameters { get; set; } = new();
+    protected         Mat?                LastMat    { get; set; }
+    protected virtual Point?              LeftLight  { get; }
+    protected virtual Point?              RightLight { get; }
+    public            EyeDetectParameters Parameters { get; set; } = new();
 
     public abstract void DetectLights(Mat thisMat, out Point? leftLightPos, out Point? rightLightPos);
 
@@ -15,14 +15,21 @@ public abstract class EyeTrackContext
     {
         if (left != null)
         {
-            mat.PutText($"X:{left.Value.X},{left.Value.Y}", left.Value, HersheyFonts.HersheySimplex, 1, Scalar.White);
+            mat.PutText($"X:{left.Value.X},{left.Value.Y}",
+                left.Value,
+                HersheyFonts.HersheySimplex,
+                1,
+                Scalar.White);
             mat.Circle(left.Value, Parameters.DesiredEyeRadius, Scalar.Black, 3);
             mat.Circle(left.Value, 2, Scalar.Black, 4);
         }
 
         if (right != null)
         {
-            mat.PutText($"X:{right.Value.X},{right.Value.Y}", right.Value, HersheyFonts.HersheySimplex, 1,
+            mat.PutText($"X:{right.Value.X},{right.Value.Y}",
+                right.Value,
+                HersheyFonts.HersheySimplex,
+                1,
                 Scalar.White);
             mat.Circle(right.Value, Parameters.DesiredEyeRadius, Scalar.Black, 3);
             mat.Circle(right.Value, 2, Scalar.Black, 4);
@@ -49,5 +56,11 @@ public abstract class EyeTrackContext
         Candidate,
         Subtraction,
         Bin_Subtraction
+    }
+
+    public void Dispose()
+    {
+        LastMat?.Dispose();
+        LastMat = null;
     }
 }

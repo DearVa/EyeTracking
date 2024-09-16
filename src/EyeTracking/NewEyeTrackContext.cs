@@ -4,14 +4,22 @@ namespace EyeTracking;
 
 public class NewEyeTrackContext : EyeTrackContext
 {
+    public NewEyeTrackContext()
+    {
+    }
+    private readonly DetectedLights Detected = new();
+
+    protected override Point? LeftLight  => Detected.Left.Current;
+    protected override Point? RightLight => Detected.Right.Current;
+
     public override void DetectLights(Mat thisMat, out Point? leftLightPos, out Point? rightLightPos)
     {
         leftLightPos  = null;
         rightLightPos = null;
         Debug(DebugHint.Origin, thisMat);
         DetectLightsInternal(thisMat, ref leftLightPos, ref rightLightPos);
-        LeftLight  = leftLightPos;
-        RightLight = rightLightPos;
+        Detected.Left.Current  = leftLightPos;
+        Detected.Right.Current = rightLightPos;
         using var clone = thisMat.Clone();
         DisplayResult(clone, leftLightPos, rightLightPos);
         LastMat?.Dispose();
@@ -172,6 +180,7 @@ public class NewEyeTrackContext : EyeTrackContext
     private record Candidate(Mat Gray, Point Point, bool Certain, double Sum, DebugHandler Handler) : IDisposable
     {
         private bool debugged;
+
         public void Debug(bool result)
         {
             if (debugged) return;
@@ -186,4 +195,45 @@ public class NewEyeTrackContext : EyeTrackContext
         }
     }
 
+
+    private class DetectedLights
+    {
+        public Points Left { get; } = new();
+        public Points Right { get; } = new();
+
+        public int Confidence
+        {
+            get => confidence;
+            set
+            {
+                confidence = value;
+                if (confidence > 0) return;
+                Left.Last  = null;
+                Right.Last = null;
+            }
+        }
+
+        private int confidence;
+        
+        public class Points
+        {
+            public Point? Last { get; internal set; }
+
+            public Point? Current
+            {
+                get => current;
+                set
+                {
+                    current = value;
+                    if (current is not null)
+                    {
+                        Last = value;
+                    }
+                }
+            }
+
+            private Point? current;
+        }
+
+    }
 }
