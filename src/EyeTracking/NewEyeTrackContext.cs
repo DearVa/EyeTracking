@@ -4,13 +4,10 @@ namespace EyeTracking;
 
 public class NewEyeTrackContext : EyeTrackContext
 {
-    public NewEyeTrackContext()
-    {
-    }
-    private readonly DetectedLights Detected = new();
+    private readonly DetectedLights detected = new();
 
-    protected override Point? LeftLight  => Detected.Left.Current;
-    protected override Point? RightLight => Detected.Right.Current;
+    protected override Point? LeftLight  => detected.Left.Current;
+    protected override Point? RightLight => detected.Right.Current;
 
     public override void DetectLights(Mat thisMat, out Point? leftLightPos, out Point? rightLightPos)
     {
@@ -18,8 +15,8 @@ public class NewEyeTrackContext : EyeTrackContext
         rightLightPos = null;
         Debug(DebugHint.Origin, thisMat);
         DetectLightsInternal(thisMat, ref leftLightPos, ref rightLightPos);
-        Detected.Left.Current  = leftLightPos;
-        Detected.Right.Current = rightLightPos;
+        detected.Left.Current  = leftLightPos;
+        detected.Right.Current = rightLightPos;
         using var clone = thisMat.Clone();
         DisplayResult(clone, leftLightPos, rightLightPos);
         LastMat?.Dispose();
@@ -206,7 +203,7 @@ public class NewEyeTrackContext : EyeTrackContext
             get => confidence;
             set
             {
-                confidence = value;
+                confidence = value <= 0 ? 0 : value;
                 if (confidence > 0) return;
                 Left.Last  = null;
                 Right.Last = null;

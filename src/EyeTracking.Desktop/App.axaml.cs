@@ -1,11 +1,13 @@
 ﻿using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.Windows;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using EyeTracking.Windows.Capture;
 
 namespace EyeTracking.Desktop;
 
@@ -16,6 +18,7 @@ public partial class App : Application
 {
     public App()
     {
+        
     }
         
     public override void Initialize()
