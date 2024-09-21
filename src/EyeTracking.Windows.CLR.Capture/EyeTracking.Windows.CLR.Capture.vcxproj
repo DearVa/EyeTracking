@@ -84,7 +84,7 @@
             <AdditionalIncludeDirectories>$(ProjectDir)..\cpp\ref;</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
-            <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
+            <AdditionalDependencies>libusbK.lib;CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
             <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x64\;</AdditionalLibraryDirectories>
         </Link>
     </ItemDefinitionGroup>
@@ -97,7 +97,7 @@
             <AdditionalIncludeDirectories>$(ProjectDir)..\cpp\ref;</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
-            <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
+            <AdditionalDependencies>libusbK.lib;CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
             <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x86\;</AdditionalLibraryDirectories>
         </Link>
     </ItemDefinitionGroup>
@@ -110,7 +110,7 @@
             <AdditionalIncludeDirectories>$(ProjectDir)..\cpp\ref;</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
-            <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
+            <AdditionalDependencies>libusbK.lib;CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
             <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x86\;</AdditionalLibraryDirectories>
         </Link>
     </ItemDefinitionGroup>
@@ -123,7 +123,7 @@
             <AdditionalIncludeDirectories>$(ProjectDir)..\cpp\ref;</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
-            <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
+            <AdditionalDependencies>libusbK.lib;CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;</AdditionalDependencies>
             <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x64\;</AdditionalLibraryDirectories>
         </Link>
     </ItemDefinitionGroup>

@@ -1,5 +1,5 @@
 #pragma once
-#include "CyApi.h"
+#include "CyAPI.h"
 
 namespace EyeTracking
 {

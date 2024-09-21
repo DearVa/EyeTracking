@@ -22,7 +22,9 @@ public partial class MainWindow : Window
             {
                 unsafe
                 {
-                    var capture = new CypressCapture(handle.Handle);
+                    var capture = new UsbKCapture();
+                    UsbKCapture.EnumUsbDevices();
+                    capture.OpenDevice(0);
                     capture.Start((buffer, length) =>
                     {
                         var a = new IntPtr(buffer);
