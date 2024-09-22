@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using System.Web;
 using Antelcat.AutoGen.ComponentModel;
 using Avalonia.Media;
@@ -9,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EyeTracking.Desktop.Extensions;
 using EyeTracking.Extensions;
+using EyeTracking.Windows.Capture;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
 using Point = OpenCvSharp.Point;
@@ -37,21 +39,19 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
 
     private string? filePath;
 
-    [ObservableProperty] 
-  
-    private EyeTrackContext? tracker;
-    
+    private readonly UsbKCapture capture = new();
+
+    [ObservableProperty] private EyeTrackContext? tracker;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanNext))]
     [NotifyPropertyChangedFor(nameof(CanPlay))]
     [NotifyPropertyChangedFor(nameof(CanPlay))]
     [NotifyPropertyChangedFor(nameof(PlayVisible))]
     [NotifyPropertyChangedFor(nameof(StopVisible))]
-    private IEnumerator<Mat>?   enumerator;
-    
-    [ObservableProperty] private EyeDetectParameters parameters = new()
-    {
-    };
+    private IEnumerator<Mat>? enumerator;
+
+    [ObservableProperty] private EyeDetectParameters parameters = new();
     [ObservableProperty] private VideoDecoder?       decoder;
     [ObservableProperty] private Mat?                source;
     [ObservableProperty] private WriteableBitmap?    bitmap;
@@ -64,12 +64,16 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     [NotifyPropertyChangedFor(nameof(PlayVisible))]
     [NotifyPropertyChangedFor(nameof(StopVisible))]
     [ObservableProperty] private bool autoPlay;
+
+    [ObservableProperty] private bool capturing;
     
     public bool CanNext => CanPlay && !AutoPlay;
     public bool CanPlay => Enumerator is not null;
 
     public bool PlayVisible => CanPlay && !AutoPlay;
     public bool StopVisible => CanPlay && AutoPlay;
+    
+    
     
     public ObservableCollection<TrackDebugViewModel> Debugs  { get; }= [];
 
@@ -167,5 +171,40 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
         foreach (var debug in Debugs) debug.Dispose();
         Debugs.Clear();
         Tracker?.DetectLights(mat, out _, out _);
+    }
+
+    [RelayCommand]
+    private void StartCapture()
+    {
+        if (UsbKCapture.EnumUsbDevices(out var names) <= 0)
+        {
+            MessageBox.Show("未检测到驱动");
+            return;
+        }
+        if (!capture.OpenDevice(0))
+        {
+            MessageBox.Show("设备 0 启动失败");
+            return;
+        }
+
+        unsafe
+        {
+            Capturing = true;
+            capture.Start((buffer, length) =>
+            {
+                var native = new IntPtr(buffer);
+                var arr    = new byte[length];
+                Marshal.Copy(native, arr, 0, (int)length); //先拷贝，本机采用的是同一块内存
+                var mat = Mat.FromPixelData(capture.Height, capture.Width, MatType.CV_8UC1, arr);
+                Tracker?.DetectLights(mat, out _, out _);
+            });
+        }
+    }
+
+    [RelayCommand]
+    private void StopCapture()
+    {
+        capture.Stop();
+        Capturing = false;
     }
 }

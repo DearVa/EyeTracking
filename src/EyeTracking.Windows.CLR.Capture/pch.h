@@ -8,5 +8,5 @@
 #define PCH_H
 
 // 添加要在此处预编译的标头
-
+#define out [System::Runtime::InteropServices::Out]
 #endif //PCH_H

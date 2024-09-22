@@ -3,5 +3,5 @@
                     xmlns:co="clr-namespace:EyeTracking.Desktop.Converters">
     <co:NotNull2BoolConverter x:Key="NotNull2BoolConverter"/>
     <co:DividedByConverter x:Key="DividedByConverter"/>
-    <co:BoolInverseConverter x:Key="BoolInverseConverter"/>
+    <co:BoolInverseConverter x:Key="BoolReConverter"/>
 </ResourceDictionary>

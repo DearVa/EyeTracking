@@ -3,6 +3,7 @@
 #define SAFE_DELETE(p)	{ if(p!=NULL) { delete p; p = NULL; } }
 using namespace System::Runtime::InteropServices;
 
+
 EyeTracking::Windows::Capture::UsbKCapture::~UsbKCapture()
 {
     CloseDevice();
@@ -10,7 +11,7 @@ EyeTracking::Windows::Capture::UsbKCapture::~UsbKCapture()
     SAFE_DELETE(handle);
 }
 
-int EyeTracking::Windows::Capture::UsbKCapture::EnumUsbDevices(array<String^>^* names)
+int EyeTracking::Windows::Capture::UsbKCapture::EnumUsbDevices(out array<String^>^ % names)
 {
     constexpr ULONG vid_arg = 0x04B4;
     constexpr ULONG pid_arg = 0x1004;
@@ -20,34 +21,32 @@ int EyeTracking::Windows::Capture::UsbKCapture::EnumUsbDevices(array<String^>^* 
 
     if (device_list)
     {
-        LstK_Free(device_list);
-        device_list = nullptr;
-        device_info = nullptr;
+        LstK_Free(*device_list);
     }
 
     // Get the device list
     if (!LstK_Init(device_list, KLST_FLAG_NONE)) return false;
 
-    LstK_Count(device_list, &device_count);
+    LstK_Count(*device_list, &device_count);
 
     if (!device_count)
     {
-        LstK_Free(device_list);
-        device_list = nullptr;
+        LstK_Free(*device_list);
+        SAFE_DELETE(device_list);
         return 0;
     }
 
-    LstK_FindByVidPid(device_list, vid_arg, pid_arg, device_info);
+    LstK_FindByVidPid(*device_list, vid_arg, pid_arg, device_info);
 
-    if (device_info == nullptr)
+    if (!device_info)
     {
         LstK_Free(device_list);
         return 0;
     }
-    *names = gcnew array<String^>(device_count);
+    names = gcnew array<String^>(device_count);
     for (UINT i = 0; i < device_count; i++)
     {
-        (*names)[i] = gcnew String((*device_info)->DeviceDesc);
+        names[i] = gcnew String((*device_info)->DeviceDesc);
     }
 
     return device_count;
@@ -66,17 +65,30 @@ bool EyeTracking::Windows::Capture::UsbKCapture::OpenDevice(const int dev_id)
     ResetFPGA();
 
     Sleep(50);
-    usb->ResetPipe(handle, 0x82);
-    usb->ResetPipe(handle, 0x88);
-    usb->ResetPipe(handle, 0x06);
+    usb->ResetPipe(*handle, 0x82);
+    usb->ResetPipe(*handle, 0x88);
+    usb->ResetPipe(*handle, 0x06);
     Sleep(50);
 
     ULONG timeout = 100;
-    usb->SetPipePolicy(handle, 0x82, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
-    usb->SetPipePolicy(handle, 0x88, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
-    usb->SetPipePolicy(handle, 0x06, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
+    usb->SetPipePolicy(*handle, 0x82, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
+    usb->SetPipePolicy(*handle, 0x88, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
+    usb->SetPipePolicy(*handle, 0x06, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
 
     return handle != nullptr;
+}
+
+#define  IMG_WIDTH  800
+#define  IMG_HEIGHT 600
+
+int EyeTracking::Windows::Capture::UsbKCapture::Width::get()
+{
+    return IMG_WIDTH;
+}
+
+int EyeTracking::Windows::Capture::UsbKCapture::Height::get()
+{
+    return IMG_HEIGHT;
 }
 
 int EyeTracking::Windows::Capture::UsbKCapture::DeviceId::get()
@@ -126,7 +138,7 @@ bool EyeTracking::Windows::Capture::UsbKCapture::ResetFPGA()
     setup.Value = OPERATOR_MODE_GPIO;
     setup.Index = 0;
     setup.Length = 0;
-    usb->ControlTransfer(handle,
+    usb->ControlTransfer(*handle,
                          setup,
                          &data,
                          len,
@@ -135,7 +147,7 @@ bool EyeTracking::Windows::Capture::UsbKCapture::ResetFPGA()
 
     Sleep(50);
     setup.Value = OPERATOR_MODE_FIFO;
-    return usb->ControlTransfer(handle,
+    return usb->ControlTransfer(*handle,
                                 setup,
                                 &data,
                                 len,
@@ -143,8 +155,7 @@ bool EyeTracking::Windows::Capture::UsbKCapture::ResetFPGA()
                                 nullptr);
 }
 
-#define  IMG_WIDTH  800
-#define  IMG_HEIGHT 600
+
 #define  CAM_NUM 1
 #define  BYTES_PER_FRAME (IMG_WIDTH*IMG_HEIGHT*CAM_NUM)
 
@@ -155,7 +166,7 @@ void EyeTracking::Windows::Capture::UsbKCapture::Loop()
     const auto buffer = new BYTE[BYTES_PER_FRAME * 3 + 4096];
     while (this->handler)
     {
-        this->usb->ReadPipe(this->handle,
+        this->usb->ReadPipe(*this->handle,
                             0x82,
                             buffer,
                             BYTES_PER_FRAME,

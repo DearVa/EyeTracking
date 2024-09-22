@@ -1,7 +1,5 @@
-﻿using Avalonia.Controls;
-using Avalonia.Threading;
-using EyeTracking.Desktop.ViewModels;
-using EyeTracking.Windows.Capture;
+﻿using EyeTracking.Desktop.ViewModels;
+using Window = Avalonia.Controls.Window;
 
 namespace EyeTracking.Desktop.Views.Windows;
 
@@ -14,23 +12,5 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new EyeTrackViewModel(this);
-        Loaded += (o, e) =>
-        {
-            var handle = TryGetPlatformHandle();
-            if (handle == null) return;
-            Dispatcher.UIThread.Invoke(() =>
-            {
-                unsafe
-                {
-                    var capture = new UsbKCapture();
-                    UsbKCapture.EnumUsbDevices();
-                    capture.OpenDevice(0);
-                    capture.Start((buffer, length) =>
-                    {
-                        var a = new IntPtr(buffer);
-                    });
-                }
-            });
-        };
     }
 }
