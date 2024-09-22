@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Web;
 using Antelcat.AutoGen.ComponentModel;
@@ -65,7 +66,8 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     [NotifyPropertyChangedFor(nameof(StopVisible))]
     [ObservableProperty] private bool autoPlay;
 
-    [ObservableProperty] private bool capturing;
+    [ObservableProperty] private bool     capturing;
+    [ObservableProperty] private int fps;
     
     public bool CanNext => CanPlay && !AutoPlay;
     public bool CanPlay => Enumerator is not null;
@@ -73,50 +75,63 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     public bool PlayVisible => CanPlay && !AutoPlay;
     public bool StopVisible => CanPlay && AutoPlay;
     
-    
-    
     public ObservableCollection<TrackDebugViewModel> Debugs  { get; }= [];
 
+    private bool accepting;
+
+    private void SetMat(ref WriteableBitmap? field, string propName, Mat mat)
+    {
+        if (field != null)
+        {
+            var tmp = field;
+            field = null;
+            OnPropertyChanged(propName);
+            tmp.Dispose();
+        }
+        field = mat.ToWriteableBitmap();
+        OnPropertyChanged(propName);
+    }
+    
+    private void ResetTracker()
+    {
+        if (Tracker != null) return;
+        Tracker            = this.ServiceProvider().GetRequiredService<EyeTrackContext>();
+        Tracker.Parameters = Parameters;
+        Tracker.OnDebug += (hint, args) =>
+        {
+            var mat = args[0].AsNotNull<Mat>();
+            switch (hint)
+            {
+                case EyeTrackContext.DebugHint.Origin:
+                    SetMat(ref origin, nameof(Origin), mat);
+                    return;
+                case EyeTrackContext.DebugHint.Bin_Subtraction:
+                    SetMat(ref binSubtraction, nameof(BinSubtraction), mat);
+                    return;
+                case EyeTrackContext.DebugHint.Subtraction:
+                    SetMat(ref subtraction, nameof(Subtraction), mat);
+                    return;
+                case EyeTrackContext.DebugHint.Output:
+                    SetMat(ref output, nameof(Output), mat);
+                    return;
+                case EyeTrackContext.DebugHint.Candidate:
+                    return;
+                    var clone = mat.Clone();
+                    Dispatcher.UIThread.Invoke(() =>
+                    {
+                        Debugs.Add(new(
+                            clone,
+                            $"X:{args[2].AsNotNull<Point>().X}, Y:{args[2].AsNotNull<Point>().Y}",
+                            args[1] is true ? Brushes.CornflowerBlue : Brushes.Red,
+                            Tracker.Parameters with { }));
+                    });
+                    return;
+            }
+        };
+    }
     private void Initialize(string file)
     {
-        if (Tracker == null)
-        {
-            Tracker            = this.ServiceProvider().GetRequiredService<EyeTrackContext>();
-            Tracker.Parameters = Parameters;
-            Tracker.OnDebug += (hint, args) =>
-            {
-                var mat = args[0].AsNotNull<Mat>();
-                switch (hint)
-                {
-                    case EyeTrackContext.DebugHint.Origin:
-                        Origin?.Dispose();
-                        Origin = mat.ToWriteableBitmap();
-                        return;
-                    case EyeTrackContext.DebugHint.Bin_Subtraction:
-                        BinSubtraction?.Dispose();
-                        BinSubtraction = mat.ToWriteableBitmap();
-                        return;
-                    case EyeTrackContext.DebugHint.Subtraction:
-                        Subtraction?.Dispose();
-                        Subtraction = mat.ToWriteableBitmap();
-                        return;
-                    case EyeTrackContext.DebugHint.Output:
-                        Output?.Dispose();
-                        Output = mat.ToWriteableBitmap();
-                        return;
-                    case EyeTrackContext.DebugHint.Candidate:
-                        Dispatcher.UIThread.Invoke(() =>
-                        {
-                            Debugs.Add(new(
-                                mat,
-                                $"X:{args[2].AsNotNull<Point>().X}, Y:{args[2].AsNotNull<Point>().Y}",
-                                args[1] is true ? Brushes.CornflowerBlue : Brushes.Red,
-                                Tracker.Parameters with { }));
-                        });
-                        return;
-                }
-            };
-        }
+        ResetTracker();
         Decoder?.Dispose();
         Decoder    = new VideoDecoder(file);
         Enumerator?.Dispose();
@@ -167,9 +182,14 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
             AutoPlay = false;
             return;
         }
-        var mat = Source = Enumerator.Current;
-        foreach (var debug in Debugs) debug.Dispose();
+        Detect(Source = Enumerator.Current);
+    }
+
+    private void Detect(Mat mat)
+    {
+        var items = Debugs.ToArray();
         Debugs.Clear();
+        foreach (var debug in items) debug.Dispose();
         Tracker?.DetectLights(mat, out _, out _);
     }
 
@@ -186,17 +206,25 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
             MessageBox.Show("设备 0 启动失败");
             return;
         }
-
+        ResetTracker();
         unsafe
         {
             Capturing = true;
+            var watch    = new Stopwatch();
+            watch.Start();
+            var lastTick = watch.ElapsedMilliseconds;
             capture.Start((buffer, length) =>
             {
-                var native = new IntPtr(buffer);
-                var arr    = new byte[length];
-                Marshal.Copy(native, arr, 0, (int)length); //先拷贝，本机采用的是同一块内存
-                var mat = Mat.FromPixelData(capture.Height, capture.Width, MatType.CV_8UC1, arr);
-                Tracker?.DetectLights(mat, out _, out _);
+                var cur = watch.ElapsedMilliseconds;
+                Fps       = (int)( 1000 / (cur - lastTick));
+                lastTick  = cur;
+                accepting = true;
+                var arr = new byte[length];
+                var ptr = new IntPtr(buffer);
+                Marshal.Copy(ptr, arr, 0, (int)length);
+                var mat = Source = Mat.FromPixelData(capture.Height, capture.Width, MatType.CV_8UC1, arr);
+                accepting = false; 
+                Detect(mat);
             });
         }
     }
@@ -206,5 +234,6 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     {
         capture.Stop();
         Capturing = false;
+        Tracker   = null;
     }
 }

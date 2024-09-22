@@ -9,4 +9,10 @@ public static class ObjectExtensions
 
     public static T AsNotNull<T>(this object? instance) =>
         instance is T t ? t : throw new ArgumentNullException(nameof(instance));
+    
+    public static T DisposeThen<T>(this T disposable) where T : IDisposable
+    {
+        disposable.Dispose();
+        return disposable;
+    }
 }

@@ -164,18 +164,18 @@ void EyeTracking::Windows::Capture::UsbKCapture::Loop()
     UINT length = 0;
 
     const auto buffer = new BYTE[BYTES_PER_FRAME * 3 + 4096];
-    while (this->handler)
+    while (handler)
     {
-        this->usb->ReadPipe(*this->handle,
+        this->usb->ReadPipe(*handle,
                             0x82,
                             buffer,
                             BYTES_PER_FRAME,
                             &length,
                             nullptr);
 
-        if (length == BYTES_PER_FRAME && this->handler)
+        if (length == BYTES_PER_FRAME && handler)
         {
-            this->handler(buffer, length);
+            handler(buffer, length);
         }
     }
     delete buffer;

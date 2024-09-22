@@ -11,7 +11,7 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyConfigurationAttribute(L"")];
 [assembly:AssemblyCompanyAttribute(L"")];
 [assembly:AssemblyProductAttribute(L"EyeTrackingWindowsCLRCapture")];
-[assembly:AssemblyCopyrightAttribute(L"版权所有(c)  2024")];
+[assembly:AssemblyCopyrightAttribute(L"Feast 版权所有(c)  2024")];
 [assembly:AssemblyTrademarkAttribute(L"")];
 [assembly:AssemblyCultureAttribute(L"")];
 

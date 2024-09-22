@@ -82,7 +82,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x86\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,7 +101,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x86\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,7 +116,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x64\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,7 +135,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\cpp\lib\x64\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>CyAPI.lib;SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SetupAPI.lib;user32.lib;legacy_stdio_definitions.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

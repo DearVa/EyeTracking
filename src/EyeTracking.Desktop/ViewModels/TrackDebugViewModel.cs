@@ -37,8 +37,6 @@ public partial class TrackDebugViewModel(
     public string                    Point  { get; } = point;
     public WriteableBitmap           Origin { get; } = mat.ToWriteableBitmap();
 
-    private readonly Mat mat = mat.Clone();
-
     public double Sum
     {
         get

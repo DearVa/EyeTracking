@@ -8,25 +8,32 @@
         mc:Ignorable="d"
         Title="EyeTrack" Height="600" Width="1200">
     <Grid RowDefinitions="Auto,*">
-        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button Content="选择" Command="{Binding SelectCommand}" 
-                    IsVisible="{Binding Capturing, 
-                    Converter={StaticResource BoolReConverter}}"/>
-            <Button Content="播放" Command="{Binding StartCommand}"
-                    IsVisible="{Binding PlayVisible}"/>
-            <Button Content="暂停" Command="{Binding StopCommand}"
-                    IsVisible="{Binding StopVisible}"/>
-            <Button Content="下一张" Command="{Binding NextCommand}"
-                    IsVisible="{Binding  CanNext}" />
-            <Button Content="捕捉" Command="{Binding StartCaptureCommand}"
-                    IsVisible="{Binding Capturing, 
-                    Converter={StaticResource BoolReConverter}}"/>
-            <Button Content="停止" Command="{Binding StopCaptureCommand}"
-                    IsVisible="{Binding Capturing}"/>
-        </StackPanel>
+        <Grid ColumnDefinitions="*,*">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="帧率:"></TextBlock>
+                <TextBlock Text="{Binding Fps}"></TextBlock>
+            </StackPanel>
+            <StackPanel Grid.Column="1"  HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Content="选择" Command="{Binding SelectCommand}"
+                        IsVisible="{Binding Capturing, 
+                    Converter={StaticResource BoolReConverter}}" />
+                <Button Content="播放" Command="{Binding StartCommand}"
+                        IsVisible="{Binding PlayVisible}" />
+                <Button Content="暂停" Command="{Binding StopCommand}"
+                        IsVisible="{Binding StopVisible}" />
+                <Button Content="下一张" Command="{Binding NextCommand}"
+                        IsVisible="{Binding  CanNext}" />
+                <Button Content="捕捉" Command="{Binding StartCaptureCommand}"
+                        IsVisible="{Binding Capturing, 
+                    Converter={StaticResource BoolReConverter}}" />
+                <Button Content="停止" Command="{Binding StopCaptureCommand}"
+                        IsVisible="{Binding Capturing}" />
+            </StackPanel>
+        </Grid>
+
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
             <Grid RowDefinitions="2*,2*" ColumnDefinitions="2*,2*">
-                <Grid >
+                <Grid>
                     <Image Source="{Binding Origin}" />
                     <TextBlock>原图</TextBlock>
                 </Grid>

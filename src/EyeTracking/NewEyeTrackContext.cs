@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using EyeTracking.Extensions;
+using OpenCvSharp;
 
 namespace EyeTracking;
 
@@ -26,19 +27,18 @@ public class NewEyeTrackContext : EyeTrackContext
     private void DetectLightsInternal(Mat thisMat, ref Point? leftLightPos, ref Point? rightLightPos)
     {
         if (LastMat == null) return;
-
         using var subMat = Subtract(thisMat, LastMat, out _, out var darker);
         Debug(DebugHint.Subtraction, subMat);
         using var binMat = Parameters.Threshold(darker);
         Debug(DebugHint.Bin_Subtraction, binMat);
 
-        if (LeftLight != null && CheckLight(thisMat, binMat, LeftLight.Value, false) is
+        if (LeftLight != null && CheckLight(thisMat, binMat, LeftLight.Value, false).DisposeThen() is
             {
                 Certain: true,
                 Point  : var left
             })
             leftLightPos = left;
-        if (RightLight != null && CheckLight(thisMat, binMat, RightLight.Value, false) is
+        if (RightLight != null && CheckLight(thisMat, binMat, RightLight.Value, false).DisposeThen() is
             {
                 Certain: true,
                 Point  : var right
@@ -46,7 +46,6 @@ public class NewEyeTrackContext : EyeTrackContext
             rightLightPos = right;
 
         if (leftLightPos != null && rightLightPos != null) return;
-
         using var       tmp        = binMat.Clone();
         List<Candidate> candidates = [];
         while (true)
@@ -102,14 +101,14 @@ public class NewEyeTrackContext : EyeTrackContext
             }
             
             candidate.Debug(false);
-            candidate.Dispose();
         }
+        foreach (var candidate in candidates) candidate.Dispose();
     }
 
     private Candidate CheckLight(Mat origin, Mat binMat, Point lightPos, bool isPointDetected = true)
     {
         var       rect   = Parameters.GetDesiredEyeRect(lightPos, binMat.Size());
-        var ori    = origin.SubMat(rect);
+        var originSub    = origin.SubMat(rect);
         using var sub    = binMat.SubMat(rect);
         var       weight = Parameters.Weighted(binMat);
         var       x      = sub.Width;
@@ -139,12 +138,12 @@ public class NewEyeTrackContext : EyeTrackContext
             {
                 if (isPointDetected)
                 {
-                    return new(ori, lightPos, true, weight, Debug);
+                    return new(originSub, lightPos, true, weight, Debug);
                 }
 
                 using var t = origin.SubMat(rect);
                 t.MinMaxLoc(out _, out Point max);
-                var ret = new Candidate(ori, max.Add(rect.TopLeft), true, weight, Debug);
+                var ret = new Candidate(originSub, max.Add(rect.TopLeft), true, weight, Debug);
                 ret.Debug(true);
                 return ret;
             }
@@ -153,7 +152,7 @@ public class NewEyeTrackContext : EyeTrackContext
 
         }
 
-        return new(ori, lightPos, false, weight, Debug);
+        return new(originSub, lightPos, false, weight, Debug);
     }
 
     private static Mat Subtract(Mat one, Mat another, out Mat brighter, out Mat darker)

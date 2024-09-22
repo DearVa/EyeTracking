@@ -2,16 +2,10 @@
 //
 
 #include <iostream>
-#include "CameraCapture.h"
-
-void Callback(PUCHAR buffer, LONG length)
-{
-}
 
 int main()
 {
     
-    new CameraCapture(nullptr, &Callback);
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
