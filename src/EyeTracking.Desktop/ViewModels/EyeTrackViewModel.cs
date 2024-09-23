@@ -66,8 +66,8 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject
     [NotifyPropertyChangedFor(nameof(StopVisible))]
     [ObservableProperty] private bool autoPlay;
 
-    [ObservableProperty] private bool     capturing;
-    [ObservableProperty] private int fps;
+    [ObservableProperty] private bool capturing;
+    [ObservableProperty] private int  fps;
     
     public bool CanNext => CanPlay && !AutoPlay;
     public bool CanPlay => Enumerator is not null;
