@@ -7,16 +7,27 @@
         d:DataContext="{d:DesignInstance vms:EyeTrackViewModel}"
         mc:Ignorable="d"
         Title="EyeTrack" Height="600" Width="1200">
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*" Background="Gray">
         <Grid ColumnDefinitions="*,*">
-            <StackPanel Orientation="Horizontal">
+            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                 <TextBlock Text="帧率:"></TextBlock>
                 <TextBlock Text="{Binding Fps}"></TextBlock>
             </StackPanel>
-            <StackPanel Grid.Column="1"  HorizontalAlignment="Right" Orientation="Horizontal">
-                <Button Content="选择" Command="{Binding SelectCommand}"
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
+                <StackPanel.Styles>
+                    <Style Selector="Button">
+                        <Setter Property="Margin" Value="4,0,0,0"></Setter>
+                    </Style>
+                    <Style Selector="ToggleSwitch">
+                        <Setter Property="Margin" Value="8,0,0,0" />
+                    </Style>
+                </StackPanel.Styles>
+                <Button Content="视频" Command="{Binding SelectVideoCommand}"
                         IsVisible="{Binding Capturing, 
                     Converter={StaticResource BoolReConverter}}" />
+                <Button Content="图片目录" Command="{Binding SelectPicturesCommand}"
+                        IsVisible="{Binding Capturing,
+                        Converter={StaticResource BoolReConverter}}" />
                 <Button Content="播放" Command="{Binding StartCommand}"
                         IsVisible="{Binding PlayVisible}" />
                 <Button Content="暂停" Command="{Binding StopCommand}"
@@ -25,9 +36,11 @@
                         IsVisible="{Binding  CanNext}" />
                 <Button Content="捕捉" Command="{Binding StartCaptureCommand}"
                         IsVisible="{Binding Capturing, 
-                    Converter={StaticResource BoolReConverter}}" />
+                        Converter={StaticResource BoolReConverter}}" />
                 <Button Content="停止" Command="{Binding StopCaptureCommand}"
                         IsVisible="{Binding Capturing}" />
+                <ToggleSwitch OnContent="启用检测" OffContent="禁用检测" IsChecked="{Binding EnableDetect}" />
+                <ToggleSwitch OnContent="保存图像" OffContent="保存图像" IsChecked="{Binding EnableSave}" />
             </StackPanel>
         </Grid>
 

@@ -9,7 +9,6 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <InvariantGlobalization>true</InvariantGlobalization>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <UseWindowsForms>true</UseWindowsForms>
     </PropertyGroup>
 
     <ItemGroup>

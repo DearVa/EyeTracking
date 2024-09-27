@@ -60,6 +60,7 @@ public abstract class EyeTrackContext : IDisposable
 
     public void Dispose()
     {
+        OnDebug = null;
         LastMat?.Dispose();
         LastMat = null;
     }

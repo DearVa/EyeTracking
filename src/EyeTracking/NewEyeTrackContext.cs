@@ -29,7 +29,7 @@ public class NewEyeTrackContext : EyeTrackContext
         if (LastMat == null) return;
         using var subMat = Subtract(thisMat, LastMat, out _, out var darker);
         Debug(DebugHint.Subtraction, subMat);
-        using var binMat = Parameters.Threshold(darker);
+        using var binMat = Parameters.Threshold(subMat);
         Debug(DebugHint.Bin_Subtraction, binMat);
 
         if (LeftLight != null && CheckLight(thisMat, binMat, LeftLight.Value, false).DisposeThen() is
