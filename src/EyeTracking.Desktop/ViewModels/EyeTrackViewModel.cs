@@ -25,10 +25,10 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
 {
     private string? VideoPath
     {
-        get => videoPath;
+        get;
         set
         {
-            SetProperty(ref videoPath, value);
+            SetProperty(ref field, value);
             Dispose();
             if (value == null)return;
             Reset();
@@ -36,8 +36,7 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
             Enumerator = Decoder.Decode().GetEnumerator();
         }
     }
-
-    private string? videoPath;
+    
 
     private string? PicturesPath
     {
@@ -84,6 +83,7 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
     [ObservableProperty] private bool capturing;
     [ObservableProperty] private bool saving;
     [ObservableProperty] private int  fps;
+    [ObservableProperty] private long copyCost;
     [ObservableProperty] private bool enableDetect;
     [ObservableProperty] private bool enableSave;
     
@@ -255,18 +255,19 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
         unsafe
         {
             Capturing = true;
-            var watch    = new Stopwatch();
-            watch.Start();
+            var watch    = Stopwatch.StartNew();
             var lastTick = watch.ElapsedMilliseconds;
             capture.Start((buffer, length) =>
             {
                 var cur = watch.ElapsedMilliseconds;
                 Fps       = (int)(1000 / (cur - lastTick));
                 lastTick  = cur;
-                var arr = new byte[length];
-                var ptr = new IntPtr(buffer);
+                var arr  = new byte[length];
+                var ptr  = new IntPtr(buffer);
+                var cost = Stopwatch.StartNew();
                 Marshal.Copy(ptr, arr, 0, (int)length);
                 var mat = Mat.FromPixelData(capture.Height, capture.Width, MatType.CV_8UC1, arr);
+                CopyCost = cost.ElapsedMilliseconds;
                 if (EnableSave) mat.SaveImage((FilePath)SavePath / DateTimeOffset.Now.Ticks.ToString() + ".png");
                 if (EnableDetect) Detect(mat);
                 else
