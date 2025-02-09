@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Web;
+using Windows.Win32;
 using Antelcat.AutoGen.ComponentModel;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -15,14 +16,29 @@ using EyeTracking.Extensions;
 using EyeTracking.Windows.Capture;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
+using OpenCvSharp.Internal;
 using Point = OpenCvSharp.Point;
 using Window = Avalonia.Controls.Window;
 
 namespace EyeTracking.Desktop.ViewModels;
 
 [AutoKeyAccessor]
-public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisposable
+public partial class EyeTrackViewModel : ObservableObject , IDisposable
 {
+    public EyeTrackViewModel(Window window)
+    {
+        this.window = window;
+        Task.Run(() =>
+        {
+            while (true)
+            {
+                PInvoke.GetCursorPos(out var point);
+                MousePos = $"{point.X},{point.Y}";
+            }
+        });
+    }
+    
+    private readonly Window window;
     private string? VideoPath
     {
         get;
@@ -36,14 +52,13 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
             Enumerator = Decoder.Decode().GetEnumerator();
         }
     }
-    
 
     private string? PicturesPath
     {
-        get => picturesPath;
+        get;
         set
         {
-            SetProperty(ref picturesPath, value);
+            SetProperty(ref field, value);
             Dispose();
             if (value == null) return;
             Reset();
@@ -54,7 +69,6 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
         }
     }
 
-    private string? picturesPath;
 
     private readonly UsbKCapture capture = new();
 
@@ -80,12 +94,13 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
     [NotifyPropertyChangedFor(nameof(PlayVisible))]
     [NotifyPropertyChangedFor(nameof(StopVisible))]
     [ObservableProperty] private bool autoPlay;
-    [ObservableProperty] private bool capturing;
-    [ObservableProperty] private bool saving;
-    [ObservableProperty] private int  fps;
-    [ObservableProperty] private long copyCost;
-    [ObservableProperty] private bool enableDetect;
-    [ObservableProperty] private bool enableSave;
+    [ObservableProperty] private bool   capturing;
+    [ObservableProperty] private bool   saving;
+    [ObservableProperty] private int    fps;
+    [ObservableProperty] private long   copyCost;
+    [ObservableProperty] private string mousePos = string.Empty;
+    [ObservableProperty] private bool   enableDetect;
+    [ObservableProperty] private bool   enableSave;
     
     public bool CanNext => CanPlay && !AutoPlay;
     public bool CanPlay => Enumerator is not null;
@@ -99,13 +114,12 @@ public partial class EyeTrackViewModel(Window window) : ObservableObject , IDisp
     {
         get
         {
-            if (created || Directory.Exists(savePath)) return savePath;
-            Directory.CreateDirectory(savePath);
+            if (created || Directory.Exists(field)) return field;
+            Directory.CreateDirectory(field);
             created = true;
-            return savePath;
+            return field;
         }
-    }
-    private readonly string savePath =  (FilePath)AppContext.BaseDirectory / "保存";
+    } = (FilePath)AppContext.BaseDirectory / "保存";
 
     private bool created;
 

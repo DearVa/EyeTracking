@@ -7,18 +7,34 @@
         d:DataContext="{d:DesignInstance vms:EyeTrackViewModel}"
         mc:Ignorable="d"
         Title="EyeTrack" Height="600" Width="1200">
-    <Grid RowDefinitions="Auto,*" Background="Gray">
+
+    <Grid RowDefinitions="Auto,*" Background="DarkGray">
         <Grid ColumnDefinitions="*,*">
             <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                <TextBlock Text="帧率:"/>
-                <TextBlock Text="{Binding Fps}"/>
-                <TextBlock Text="拷贝耗时"/>
-                <TextBlock Text="{Binding CopyCost}"/>
+                <StackPanel.Styles>
+                    <Style Selector="StackPanel">
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Orientation" Value="Horizontal" />
+                        <Setter Property="Margin" Value="0,0,20,0" />
+                    </Style>
+                </StackPanel.Styles>
+                <StackPanel>
+                    <TextBlock Text="帧率:" />
+                    <TextBlock Text="{Binding Fps}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="拷贝耗时:" />
+                    <TextBlock Text="{Binding CopyCost}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="鼠标坐标:" />
+                    <TextBlock Text="{Binding MousePos}" />
+                </StackPanel>
             </StackPanel>
             <StackPanel Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
                 <StackPanel.Styles>
                     <Style Selector="Button">
-                        <Setter Property="Margin" Value="4,0,0,0"></Setter>
+                        <Setter Property="Margin" Value="4,0,0,0" />
                     </Style>
                     <Style Selector="ToggleSwitch">
                         <Setter Property="Margin" Value="8,0,0,0" />
@@ -46,37 +62,42 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
-            <Grid RowDefinitions="2*,2*" ColumnDefinitions="2*,2*">
-                <Grid>
-                    <Image Source="{Binding Origin}" />
-                    <TextBlock>原图</TextBlock>
+        <Grid Grid.Row="1">
+            <Border BorderThickness="4" Padding="12">
+                <Grid ColumnDefinitions="*,Auto">
+                    <Grid RowDefinitions="2*,2*" ColumnDefinitions="2*,2*">
+                        <Grid>
+                            <Image Source="{Binding Origin}" />
+                            <TextBlock>原图</TextBlock>
+                        </Grid>
+                        <Grid Grid.Row="0" Grid.Column="1">
+                            <Image Source="{Binding Subtraction}" />
+                            <TextBlock>差值</TextBlock>
+                        </Grid>
+                        <Grid Grid.Row="1" Grid.Column="0">
+                            <Image Source="{Binding BinSubtraction}" />
+                            <TextBlock>二值化差值</TextBlock>
+                        </Grid>
+                        <Grid Grid.Row="1" Grid.Column="1">
+                            <Image Source="{Binding Output}" />
+                            <TextBlock>输出</TextBlock>
+                        </Grid>
+                    </Grid>
+                    <ListBox Grid.Column="1" ItemsSource="{Binding Debugs}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DetailCommand}">
+                                    <StackPanel Orientation="Horizontal" Background="{Binding Brush}">
+                                        <Image Source="{Binding  Origin}" />
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding Point}" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Grid>
-                <Grid Grid.Row="0" Grid.Column="1">
-                    <Image Source="{Binding Subtraction}" />
-                    <TextBlock>差值</TextBlock>
-                </Grid>
-                <Grid Grid.Row="1" Grid.Column="0">
-                    <Image Source="{Binding BinSubtraction}" />
-                    <TextBlock>二值化差值</TextBlock>
-                </Grid>
-                <Grid Grid.Row="1" Grid.Column="1">
-                    <Image Source="{Binding Output}" />
-                    <TextBlock>输出</TextBlock>
-                </Grid>
-            </Grid>
-            <ListBox Grid.Column="1" ItemsSource="{Binding Debugs}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Button Command="{Binding DetailCommand}">
-                            <StackPanel Orientation="Horizontal" Background="{Binding Brush}">
-                                <Image Source="{Binding  Origin}" />
-                                <TextBlock VerticalAlignment="Center" Text="{Binding Point}" />
-                            </StackPanel>
-                        </Button>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            </Border>
         </Grid>
+
     </Grid>
 </Window>

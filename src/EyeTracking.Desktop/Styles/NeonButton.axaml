@@ -1,0 +1,127 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <Color x:Key="Major">DeepPink</Color>
+        <Color x:Key="Minor">Cyan</Color>
+        <LinearGradientBrush x:Key="Default" StartPoint="0% 0%" EndPoint="100% 100%">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="{StaticResource Major}" />
+                <GradientStop Offset="1" Color="{StaticResource Minor}" />
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="Stage1" StartPoint="100% 0%" EndPoint="0% 100%">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="{StaticResource Major}" />
+                <GradientStop Offset="1" Color="{StaticResource Minor}" />
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="Stage2" StartPoint="100% 100%" EndPoint="0% 0%">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="{StaticResource Major}" />
+                <GradientStop Offset="1" Color="{StaticResource Minor}" />
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="Stage3" StartPoint="0% 100%" EndPoint="100% 0%">
+            <LinearGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="{StaticResource Major}" />
+                <GradientStop Offset="1" Color="{StaticResource Minor}" />
+            </LinearGradientBrush.GradientStops>
+        </LinearGradientBrush>
+    </Styles.Resources>
+    <Design.PreviewWith>
+        <Border>
+            <Border Classes="Rainbow" BorderThickness="2">
+                <Button Margin="12"/>
+            </Border>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="Border.Rainbow">
+        <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+        <Style.Animations>
+            <Animation IterationCount="INFINITE" Duration="0:0:2" FillMode="Forward">
+                <KeyFrame Cue="0%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+                <KeyFrame Cue="40%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage1}" />
+                </KeyFrame>
+                <KeyFrame Cue="50%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage2}" />
+                </KeyFrame>
+                <KeyFrame Cue="90%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage3}" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="Button">
+        <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+        <Style.Animations>
+            <Animation IterationCount="INFINITE" Duration="0:0:2" FillMode="Forward">
+                <KeyFrame Cue="0%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+                <KeyFrame Cue="40%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage1}" />
+                </KeyFrame>
+                <KeyFrame Cue="50%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage2}" />
+                </KeyFrame>
+                <KeyFrame Cue="90%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage3}" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+        <Style.Animations>
+            <Animation IterationCount="INFINITE" Duration="0:0:2" FillMode="Forward">
+                <KeyFrame Cue="0%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+                <KeyFrame Cue="25%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage1}" />
+                </KeyFrame>
+                <KeyFrame Cue="50%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage2}" />
+                </KeyFrame>
+                <KeyFrame Cue="75%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage3}" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+        <Style.Animations>
+            <Animation IterationCount="INFINITE" Duration="0:0:2" FillMode="Forward">
+                <KeyFrame Cue="0%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+                <KeyFrame Cue="25%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage1}" />
+                </KeyFrame>
+                <KeyFrame Cue="50%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage2}" />
+                </KeyFrame>
+                <KeyFrame Cue="75%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Stage3}" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="BorderBrush" Value="{StaticResource Default}" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+</Styles>
