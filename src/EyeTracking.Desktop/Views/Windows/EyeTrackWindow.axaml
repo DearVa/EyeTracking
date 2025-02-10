@@ -1,0 +1,24 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vms="clr-namespace:EyeTracking.Desktop.ViewModels"
+        xmlns:cs="clr-namespace:EyeTracking.Desktop.Views.Controls"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="EyeTracking.Desktop.Views.Windows.EyeTrackWindow"
+        Background="Transparent" WindowState="Maximized"
+        d:DataContext="{d:DesignInstance vms:EyeTrackViewModel}"
+        
+        Title="EyeTrackTestWindow">
+    <cs:NeonBorder BorderThickness="4" PrimaryBorderColor="Cyan" SecondaryBorderColor="DeepPink">
+        <Grid RowDefinitions="Auto,*">
+            <Grid>
+                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                    <TextBlock Text="鼠标坐标 : " />
+                    <TextBlock Text="{Binding MousePos}" />
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="1"></Grid>
+        </Grid>
+    </cs:NeonBorder>
+</Window>

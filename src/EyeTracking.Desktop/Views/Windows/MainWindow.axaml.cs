@@ -11,7 +11,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new EyeTrackViewModel(this);
-        
+        var vm = new EyeTrackViewModel(this);
+        DataContext = vm;
+        new EyeTrackWindow(vm).Show();
     }
 }
