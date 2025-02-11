@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Web;
 using Windows.Win32;
@@ -16,8 +16,6 @@ using EyeTracking.Extensions;
 using EyeTracking.Windows.Capture;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCvSharp;
-using OpenCvSharp.Internal;
-using Point = OpenCvSharp.Point;
 using Window = Avalonia.Controls.Window;
 
 namespace EyeTracking.Desktop.ViewModels;
@@ -25,6 +23,7 @@ namespace EyeTracking.Desktop.ViewModels;
 [AutoKeyAccessor]
 public partial class EyeTrackViewModel : ObservableObject , IDisposable
 {
+   
     public EyeTrackViewModel(Window window)
     {
         this.window = window;
@@ -33,7 +32,7 @@ public partial class EyeTrackViewModel : ObservableObject , IDisposable
             while (true)
             {
                 PInvoke.GetCursorPos(out var point);
-                MousePos = $"{point.X},{point.Y}";
+                MousePos = point;
             }
         });
     }
@@ -94,13 +93,14 @@ public partial class EyeTrackViewModel : ObservableObject , IDisposable
     [NotifyPropertyChangedFor(nameof(PlayVisible))]
     [NotifyPropertyChangedFor(nameof(StopVisible))]
     [ObservableProperty] private bool autoPlay;
-    [ObservableProperty] private bool   capturing;
-    [ObservableProperty] private bool   saving;
-    [ObservableProperty] private int    fps;
-    [ObservableProperty] private long   copyCost;
-    [ObservableProperty] private string mousePos = string.Empty;
-    [ObservableProperty] private bool   enableDetect;
-    [ObservableProperty] private bool   enableSave;
+    [ObservableProperty] private bool                 capturing;
+    [ObservableProperty] private bool                 saving;
+    [ObservableProperty] private int                  fps;
+    [ObservableProperty] private long                 copyCost;
+    [ObservableProperty] private System.Drawing.Point mousePos;
+    [ObservableProperty] private Avalonia.Point       canvasPos;
+    [ObservableProperty] private bool                 enableDetect;
+    [ObservableProperty] private bool                 enableSave;
     
     public bool CanNext => CanPlay && !AutoPlay;
     public bool CanPlay => Enumerator is not null;

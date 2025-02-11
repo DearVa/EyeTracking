@@ -8,17 +8,25 @@
         x:Class="EyeTracking.Desktop.Views.Windows.EyeTrackWindow"
         Background="Transparent" WindowState="Maximized"
         d:DataContext="{d:DesignInstance vms:EyeTrackViewModel}"
-        
         Title="EyeTrackTestWindow">
     <cs:NeonBorder BorderThickness="4" PrimaryBorderColor="Cyan" SecondaryBorderColor="DeepPink">
-        <Grid RowDefinitions="Auto,*">
+        <Grid>
             <Grid>
-                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <StackPanel Background="#626262aa"  
+                            VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Horizontal">
                     <TextBlock Text="鼠标坐标 : " />
                     <TextBlock Text="{Binding MousePos}" />
+                    
+                    <TextBlock Text="画布坐标 : "  Margin="10,0"/>
+                    <TextBlock Text="{Binding CanvasPos}" />
                 </StackPanel>
             </Grid>
-            <Grid Grid.Row="1"></Grid>
+            <Grid>
+                <Canvas x:Name="Canvas">
+                    <Ellipse x:Name="EyeSight" Fill="Aquamarine" 
+                             Height="60" Width="60" />
+                </Canvas>
+            </Grid>
         </Grid>
     </cs:NeonBorder>
 </Window>
