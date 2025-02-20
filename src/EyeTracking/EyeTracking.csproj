@@ -17,4 +17,9 @@
         <PackageReference Include="Sdcb.FFmpeg.runtime.windows-x64" Version="7.0.0"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="Resources/**/*.*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>
