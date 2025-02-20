@@ -44,7 +44,7 @@ int UsbKCapture::EnumUsbDevices(char *** names)
     *names = new char*[device_count];
     for (UINT i = 0; i < device_count; i++)
     {
-        names[i] = gcnew String(device_info->DeviceDesc);
+        //names[i] = (device_info->DeviceDesc);
     }
 
     return device_count;
@@ -93,8 +93,8 @@ void UsbKCapture::Start(void (*handler)(PUCHAR, UINT))
 {
     if (this->handler) return;
     this->handler = handler;
-    auto thread = std::thread(Loop,this);
-    thread.join();
+    //auto thread = std::thread(&Loop,this);
+    //thread.join();
 }
 
 void UsbKCapture::Stop()

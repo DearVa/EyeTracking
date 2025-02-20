@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using EyeTracking.Extensions;
+﻿using EyeTracking.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EyeTracking.Desktop.Extensions;
