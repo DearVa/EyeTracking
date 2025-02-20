@@ -7,7 +7,8 @@ public class LatestTrackContext : EyeTrackContext
 {
     private bool? isLastLight;
 
-    private const string XmlPath = "./Resources/Haarcascades/haarcascade_eye.xml";
+    private static readonly string XmlPath =
+        Path.Combine(AppContext.BaseDirectory, "Resources/Haarcascade/haarcascade_eye.xml");
 
     public override void DetectLights(Mat thisMat, out Point? leftLightPos, out Point? rightLightPos)
     {
